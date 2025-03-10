@@ -5,16 +5,17 @@ local augroup = vim.api.nvim_create_augroup
 
 vim.g.mapleader = vim.keycode "<space>"
 
-vim.cmd "colorscheme theme"
+vim.cmd "colorscheme minicyan"
 
 -- {{{ Options
 opt.updatetime = 250
 opt.timeoutlen = 300
 
-opt.termguicolors = false
+opt.termguicolors = true
 opt.splitright = true
 opt.scrolloff = 5
 opt.foldenable = false
+opt.cursorline = true
 
 opt.number = true
 opt.relativenumber = true
@@ -101,7 +102,7 @@ autocmd("BufEnter", {
 autocmd("FileType", {
   desc = "Close certain windows with the escape key.",
   group = augroup("close_with_escape", {}),
-  pattern = { "help", "qf", "man", "checkhealth", "codecompanion" },
+  pattern = { "help", "qf", "man", "checkhealth" },
   callback = function(event)
     vim.bo[event.buf].buflisted = false
     set("n", "<Esc>", "<Cmd>bd<CR>", { buffer = event.buf, silent = true })
@@ -127,14 +128,19 @@ require "paq" {
   "nvim-treesitter/nvim-treesitter-textobjects",
   "neovim/nvim-lspconfig",
   "brianaung/compl.nvim",
-  "brianaung/fzf.nvim",
   { "brianaung/yasl.nvim", branch = "v2" },
+  { "nvim-telescope/telescope.nvim", tag = "0.1.8" },
+  { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
   "stevearc/conform.nvim",
   "stevearc/oil.nvim",
+  { "echasnovski/mini.diff", branch = "stable" },
+  { "echasnovski/mini.base16", branch = "stable" },
   "tpope/vim-sleuth",
+  "tpope/vim-fugitive",
   "tpope/vim-surround",
   "mbbill/undotree",
   "christoomey/vim-tmux-navigator",
-  "olimorris/codecompanion.nvim",
 }
+
+require("mini.diff").setup()
 -- }}}
