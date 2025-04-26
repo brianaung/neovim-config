@@ -5,13 +5,13 @@ local augroup = vim.api.nvim_create_augroup
 
 vim.g.mapleader = vim.keycode "<space>"
 
-vim.cmd "colorscheme minicyan"
+vim.cmd "colorscheme theme"
 
 -- {{{ Options
 opt.updatetime = 250
 opt.timeoutlen = 300
 
-opt.termguicolors = true
+opt.termguicolors = false
 opt.splitright = true
 opt.scrolloff = 5
 opt.foldenable = false
