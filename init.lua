@@ -1,146 +1,147 @@
-local opt = vim.opt
-local set = vim.keymap.set
-local autocmd = vim.api.nvim_create_autocmd
-local augroup = vim.api.nvim_create_augroup
-
-vim.g.mapleader = vim.keycode "<space>"
-
-vim.cmd "colorscheme theme"
-
--- {{{ Options
-opt.updatetime = 250
-opt.timeoutlen = 300
-
-opt.termguicolors = false
-opt.splitright = true
-opt.scrolloff = 5
-opt.foldenable = false
-opt.cursorline = true
-
-opt.number = true
-opt.relativenumber = true
-
-opt.tabstop = 4
-opt.shiftwidth = 4
-opt.expandtab = false
-
-opt.linebreak = true
-opt.breakindent = true
-opt.showbreak = "   "
-
-opt.inccommand = "split"
-
-opt.ignorecase = true
-opt.smartcase = true
-
--- Better ins-completion experience
-opt.completeopt = { "menuone", "noselect", "noinsert" }
-opt.shortmess:append "c"
-
--- Display hidden characters.
-opt.list = true
-opt.listchars = {
-  tab = "→ ",
-  eol = "↲",
-  extends = "›",
-  precedes = "‹",
-  nbsp = "␣",
-  trail = "~",
-}
--- }}}
+vim.cmd "colorscheme lunaperche"
 
 -- {{{ Keymaps
-set({ "n", "v" }, "<Leader>", "<nop>")
-set("n", "j", "gj")
-set("n", "k", "gk")
+vim.g.mapleader = vim.keycode "<Space>"
+vim.g.maplocalleader = vim.keycode "<Space>"
 
--- Re-center when scrolling.
-set("n", "<C-u>", "<C-u>zz")
-set("n", "<C-d>", "<C-d>zz")
+vim.keymap.set("n", "<Esc>", "<Cmd>nohlsearch<CR>", { desc = "Clear search highlights" })
 
--- Yank and Paste from system clipboard.
-set({ "n", "v" }, "<Leader>y", [["+y]])
-set("n", "<Leader>Y", [["+Y]])
-set("n", "<Leader>p", [["+p]])
+vim.keymap.set({ "n", "v" }, "<Leader>y", [["+y]], { desc = "Yank to system clipboard" })
+vim.keymap.set("n", "<Leader>p", [["+p]], { desc = "Paste from system clipboard" })
 
--- Move selected lines.
-set("v", "J", [[:m '>+1<CR>gv=gv]])
-set("v", "K", [[:m '<-2<CR>gv=gv]])
+vim.keymap.set("v", "J", [[:m '>+1<CR>gv=gv]], { desc = "Move selected lines down" })
+vim.keymap.set("v", "K", [[:m '<-2<CR>gv=gv]], { desc = "Move selected lines up" })
 
-set("n", "<C-f>", "<Cmd>silent !tmux neww tmux-sessionizer<CR>")
+vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Re-center when scrolling up" })
+vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Re-center when scrolling down" })
 
--- Use <CR> to clear hlsearch when active.
-set("n", "<CR>", function() return vim.v.hlsearch == 1 and "<Cmd>nohl<CR>" or "<CR>" end, { expr = true })
---- }}}
+vim.keymap.set("n", "<C-f>", "<Cmd>silent !tmux neww tmux-sessionizer<CR>")
+-- }}}
+
+-- {{{ Options
+vim.opt.number = true
+vim.opt.relativenumber = true
+vim.opt.cursorline = true
+
+vim.opt.ignorecase = true
+vim.opt.smartcase = true
+
+vim.opt.breakindent = true
+
+vim.opt.confirm = true
+
+vim.opt.completeopt = { "fuzzy", "menuone", "noselect", "popup" }
+vim.opt.shortmess:append "c"
+
+vim.opt.list = true
+vim.opt.listchars = { tab = "→ ", eol = "↲", nbsp = "␣", trail = "~" }
+-- }}}
 
 -- {{{ Autocmds
-autocmd({ "VimResized" }, {
-  desc = "Resize splits if window got resized.",
-  group = augroup("resize_splits", {}),
+vim.api.nvim_create_autocmd({ "VimResized" }, {
+  desc = "Resize splits if window got resized",
+  group = vim.api.nvim_create_augroup("resize_splits", { clear = true }),
   callback = function()
-    local current_tab = vim.fn.tabpagenr()
     vim.cmd "tabdo wincmd ="
-    vim.cmd("tabnext " .. current_tab)
+    vim.cmd("tabnext " .. vim.fn.tabpagenr())
   end,
 })
 
-autocmd("TextYankPost", {
-  desc = "Highlight when yanking (copying) text.",
-  group = augroup("highlight_yank", {}),
-  callback = function() vim.highlight.on_yank { higroup = "Visual" } end,
-})
-
-autocmd("BufEnter", {
-  desc = "Set global format options.",
-  group = augroup("set_formatoptions", {}),
-  callback = function()
-    -- -o: Don't add comment leader when I press 'o' or 'O'.
-    opt.formatoptions:remove { "o" }
-  end,
-})
-
-autocmd("FileType", {
-  desc = "Close certain windows with the escape key.",
-  group = augroup("close_with_escape", {}),
-  pattern = { "help", "qf", "man", "checkhealth" },
-  callback = function(event)
-    vim.bo[event.buf].buflisted = false
-    set("n", "<Esc>", "<Cmd>bd<CR>", { buffer = event.buf, silent = true })
-  end,
+vim.api.nvim_create_autocmd("TextYankPost", {
+  desc = "Highlight when yanking text",
+  group = vim.api.nvim_create_augroup("highlight_yank", { clear = true }),
+  callback = function() vim.highlight.on_yank() end,
 })
 -- }}}
 
--- {{{ Plugins
--- opt.runtimepath:append "~/projects/compl.nvim"
--- opt.runtimepath:append "~/projects/yasl.nvim"
--- opt.runtimepath:append "~/projects/fzf.nvim"
-
+-- {{{ Paq
 local paq_path = vim.fn.stdpath "data" .. "/site/pack/paqs/start/paq-nvim"
-local is_installed = vim.fn.empty(vim.fn.glob(paq_path)) == 0
-if not is_installed then
+if vim.fn.empty(vim.fn.glob(paq_path)) then
   vim.fn.system { "git", "clone", "--depth=1", "https://github.com/savq/paq-nvim.git", paq_path }
 end
 vim.cmd.packadd "paq-nvim"
 require "paq" {
   "savq/paq-nvim",
-  "nvim-lua/plenary.nvim",
   { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" },
-  "nvim-treesitter/nvim-treesitter-textobjects",
   "neovim/nvim-lspconfig",
-  "brianaung/compl.nvim",
-  { "brianaung/yasl.nvim", branch = "v2" },
-  { "nvim-telescope/telescope.nvim", tag = "0.1.8" },
-  { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
-  "stevearc/conform.nvim",
+  "ibhagwan/fzf-lua",
   "stevearc/oil.nvim",
-  { "echasnovski/mini.diff", branch = "stable" },
-  { "echasnovski/mini.base16", branch = "stable" },
-  "tpope/vim-sleuth",
+  "stevearc/conform.nvim",
   "tpope/vim-fugitive",
-  "tpope/vim-surround",
+  "tpope/vim-sleuth",
   "mbbill/undotree",
   "christoomey/vim-tmux-navigator",
 }
+-- }}}
 
-require("mini.diff").setup()
+-- {{{ Treesitter
+require("nvim-treesitter.configs").setup {
+  highlight = {
+    enable = true,
+    disable = function(lang, buf)
+      local max_filesize = 100 * 1024 -- 100 KB
+      local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
+      if ok and stats and stats.size > max_filesize then return true end
+    end,
+  },
+}
+-- }}}
+
+-- {{{ LSP
+vim.lsp.config("*", {
+  on_attach = function(client, bufnr)
+    vim.keymap.set("n", "<Leader>gd", vim.lsp.buf.definition, { buffer = bufnr, desc = "Jump to definition" })
+    vim.keymap.set("n", "<Leader>ca", vim.lsp.buf.code_action, { buffer = bufnr, desc = "Get available code actions" })
+    vim.keymap.set("n", "<Leader>rn", vim.lsp.buf.rename, { buffer = bufnr, desc = "Rename all references" })
+    vim.keymap.set("n", "<Leader>se", vim.diagnostic.open_float, { buffer = bufnr, desc = "Show diagnostics window" })
+
+    if client:supports_method "textDocument/completion" then
+      local chars = {}
+      for i = 32, 126 do
+        table.insert(chars, string.char(i))
+      end
+      client.server_capabilities.completionProvider.triggerCharacters = chars
+      vim.lsp.completion.enable(true, client.id, bufnr, { autotrigger = true })
+    end
+  end,
+})
+
+vim.lsp.config("lua_ls", {
+  settings = {
+    ["Lua"] = { diagnostics = { globals = { "vim" } } },
+  },
+})
+vim.lsp.enable "lua_ls"
+-- }}}
+
+-- {{{ FzfLua
+vim.keymap.set("n", "<Leader>fd", "<Cmd>FzfLua files<CR>", { desc = "Search files" })
+vim.keymap.set("n", "<Leader>fl", "<Cmd>FzfLua live_grep<CR>", { desc = "Search for strings/regexes" })
+vim.keymap.set("n", "<Leader>fb", "<Cmd>FzfLua buffers<CR>", { desc = "Search buffers" })
+vim.keymap.set("n", "<Leader>fh", "<Cmd>FzfLua help_tags<CR>", { desc = "Search help tags" })
+-- }}}
+
+-- {{{ Oil
+require("oil").setup()
+vim.keymap.set("n", "-", "<Cmd>Oil<CR>", { desc = "Open files drawer" })
+-- }}}
+
+-- {{ Conform
+require("conform").setup {
+  formatters_by_ft = {
+    lua = { "stylua" },
+  },
+  format_after_save = {
+    lsp_fallback = false,
+    timeout_ms = 500,
+    async = true,
+  },
+}
+-- }}}
+
+-- {{{ TmuxNavigator
+vim.keymap.set("n", "<C-h>", "<Cmd>TmuxNavigateLeft<CR>", { desc = "Navigate left to vim/tmux window" })
+vim.keymap.set("n", "<C-j>", "<Cmd>TmuxNavigateDown<CR>", { desc = "Navigate down to vim/tmux window" })
+vim.keymap.set("n", "<C-k>", "<Cmd>TmuxNavigateUp<CR>", { desc = "Navigate up to vim/tmux window" })
+vim.keymap.set("n", "<C-l>", "<Cmd>TmuxNavigateRight<CR>", { desc = "Navigate right to vim/tmux window" })
 -- }}}
