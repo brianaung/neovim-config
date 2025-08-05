@@ -51,29 +51,23 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
 })
 -- }}}
 
--- {{{ Paq
-local paq_path = vim.fn.stdpath "data" .. "/site/pack/paqs/start/paq-nvim"
-if vim.fn.empty(vim.fn.glob(paq_path)) then
-  vim.fn.system { "git", "clone", "--depth=1", "https://github.com/savq/paq-nvim.git", paq_path }
-end
-vim.cmd.packadd "paq-nvim"
-require "paq" {
-  "savq/paq-nvim",
-  "rose-pine/neovim",
-  { "nvim-treesitter/nvim-treesitter", build = ":TSUpdate" },
-  "neovim/nvim-lspconfig",
-  "brianaung/compl.nvim",
-  "ibhagwan/fzf-lua",
-  "tpope/vim-sleuth",
-  "tpope/vim-surround",
-  "stevearc/oil.nvim",
-  "stevearc/conform.nvim",
-  "stevearc/quicker.nvim",
-  "echasnovski/mini.statusline",
-  "mbbill/undotree",
-  "christoomey/vim-tmux-navigator",
-  "lewis6991/gitsigns.nvim",
-  "Exafunction/windsurf.vim",
+-- {{{ Plugins
+vim.pack.add {
+  "https://github.com/rose-pine/neovim",
+  "https://github.com/nvim-treesitter/nvim-treesitter",
+  "https://github.com/neovim/nvim-lspconfig",
+  "https://github.com/brianaung/compl.nvim",
+  "https://github.com/ibhagwan/fzf-lua",
+  "https://github.com/tpope/vim-sleuth",
+  "https://github.com/tpope/vim-surround",
+  "https://github.com/stevearc/oil.nvim",
+  "https://github.com/stevearc/conform.nvim",
+  "https://github.com/stevearc/quicker.nvim",
+  "https://github.com/echasnovski/mini.statusline",
+  "https://github.com/mbbill/undotree",
+  "https://github.com/christoomey/vim-tmux-navigator",
+  "https://github.com/lewis6991/gitsigns.nvim",
+  "https://github.com/Exafunction/windsurf.vim",
 }
 -- }}}
 
