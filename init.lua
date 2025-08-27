@@ -58,12 +58,14 @@ vim.pack.add {
   "https://github.com/neovim/nvim-lspconfig",
   "https://github.com/brianaung/compl.nvim",
   "https://github.com/ibhagwan/fzf-lua",
+  "https://github.com/folke/snacks.nvim",
   "https://github.com/tpope/vim-sleuth",
   "https://github.com/tpope/vim-surround",
   "https://github.com/stevearc/oil.nvim",
   "https://github.com/stevearc/conform.nvim",
   "https://github.com/stevearc/quicker.nvim",
   "https://github.com/echasnovski/mini.statusline",
+  "https://github.com/echasnovski/mini.tabline",
   "https://github.com/mbbill/undotree",
   "https://github.com/christoomey/vim-tmux-navigator",
   "https://github.com/lewis6991/gitsigns.nvim",
@@ -73,7 +75,7 @@ vim.pack.add {
 
 -- {{{ Colorscheme
 require("rose-pine").setup {
-  styles = { transparency = true },
+  -- styles = { transparency = true },
 }
 vim.cmd "colorscheme rose-pine"
 -- }}}
@@ -96,6 +98,9 @@ require("nvim-treesitter.configs").setup {
 vim.lsp.config("*", {
   on_attach = function(_, bufnr)
     vim.keymap.set("n", "<Leader>gd", vim.lsp.buf.definition, { buffer = bufnr })
+    vim.keymap.set("n", "<Leader>gi", vim.lsp.buf.implementation, { buffer = bufnr })
+    vim.keymap.set("n", "<Leader>gr", vim.lsp.buf.references, { buffer = bufnr })
+    vim.keymap.set("n", "<Leader>gt", vim.lsp.buf.type_definition, { buffer = bufnr })
     vim.keymap.set("n", "<Leader>ca", vim.lsp.buf.code_action, { buffer = bufnr })
     vim.keymap.set("n", "<Leader>rn", vim.lsp.buf.rename, { buffer = bufnr })
     vim.keymap.set("n", "<Leader>se", vim.diagnostic.open_float, { buffer = bufnr })
@@ -107,10 +112,27 @@ vim.lsp.config("lua_ls", {
     ["Lua"] = { diagnostics = { globals = { "vim" } } },
   },
 })
-vim.lsp.enable "lua_ls"
-vim.lsp.enable "vue_ls"
-vim.lsp.enable "tailwindcss"
-vim.lsp.enable "phpactor"
+
+local vue_plugin = {
+  name = "@vue/typescript-plugin",
+  location = "/home/brianaung/.nix-profile/lib/node_modules/@vue/language-server",
+  languages = { "vue" },
+  configNamespace = "typescript",
+}
+vim.lsp.config("vtsls", {
+  settings = {
+    vtsls = {
+      tsserver = {
+        globalPlugins = {
+          vue_plugin,
+        },
+      },
+    },
+  },
+  filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
+})
+
+vim.lsp.enable { "lua_ls", "vue_ls", "vtsls", "tailwindcss", "phpactor" }
 
 -- vim.opt.runtimepath:append "~/projects/compl.nvim"
 require("compl").setup {
@@ -157,5 +179,12 @@ require("conform").setup {
 -- {{{ Misc
 require("quicker").setup()
 require("mini.statusline").setup()
+require("mini.tabline").setup()
 require("gitsigns").setup { current_line_blame = true }
+require("snacks").setup {
+  indent = {},
+  statuscolumn = {},
+  bigfile = {},
+  words = {},
+}
 --- }}}
