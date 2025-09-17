@@ -132,7 +132,7 @@ vim.lsp.config("vtsls", {
   filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
 })
 
-vim.lsp.enable { "lua_ls", "vue_ls", "vtsls", "tailwindcss", "phpactor" }
+vim.lsp.enable { "lua_ls", "vue_ls", "vtsls", "tailwindcss", "phpactor", "terraform_ls" }
 
 -- vim.opt.runtimepath:append "~/projects/compl.nvim"
 require("compl").setup {
