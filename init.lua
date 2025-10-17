@@ -1,190 +1,120 @@
--- {{{ Keymaps
 vim.g.mapleader = vim.keycode "<Space>"
 vim.g.maplocalleader = vim.keycode "<Space>"
 
 vim.keymap.set("n", "<Esc>", "<Cmd>nohlsearch<CR>")
-vim.keymap.set("n", "j", "gj")
-vim.keymap.set("n", "k", "gk")
-vim.keymap.set({ "n", "v" }, "<Leader>y", [["+y]])
-vim.keymap.set("n", "<Leader>p", [["+p]])
-vim.keymap.set("v", "J", [[:m '>+1<CR>gv=gv]])
-vim.keymap.set("v", "K", [[:m '<-2<CR>gv=gv]])
-vim.keymap.set("n", "<C-u>", "<C-u>zz")
-vim.keymap.set("n", "<C-d>", "<C-d>zz")
-vim.keymap.set("n", "<C-f>", "<Cmd>silent !tmux neww tmux-sessionizer<CR>")
--- }}}
+vim.keymap.set({ "n", "v" }, "<Leader>y", [["+y]], { desc = "Yank to clipboard" })
+vim.keymap.set("n", "<Leader>p", [["+p]], { desc = "Paste from clipboard" })
 
--- {{{ Options
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.cursorline = true
-vim.opt.virtualedit = "all"
 vim.opt.scrolloff = 5
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
-vim.opt.breakindent = true
 vim.opt.confirm = true
-vim.opt.completeopt = { "fuzzy", "menuone", "noselect", "popup" }
-vim.opt.shortmess:append "c"
-vim.opt.wildoptions:remove "pum"
 vim.opt.list = true
 vim.opt.listchars = { tab = "→ ", eol = "↲", nbsp = "␣", trail = "~" }
--- }}}
-
--- {{{ Autocmds
-vim.api.nvim_create_autocmd({ "VimResized" }, {
-  group = vim.api.nvim_create_augroup("resize_splits", { clear = true }),
-  callback = function()
-    vim.cmd "tabdo wincmd ="
-    vim.cmd("tabnext " .. vim.fn.tabpagenr())
-  end,
-})
 
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = vim.api.nvim_create_augroup("highlight_yank", { clear = true }),
-  callback = function() vim.highlight.on_yank() end,
+  callback = function() vim.hl.on_yank() end,
 })
 
-vim.api.nvim_create_autocmd({ "FileType" }, {
-  group = vim.api.nvim_create_augroup("format_options", { clear = true }),
-  callback = function() vim.opt.formatoptions:remove "o" end,
-})
--- }}}
-
--- {{{ Plugins
 vim.pack.add {
-  "https://github.com/rose-pine/neovim",
   "https://github.com/nvim-treesitter/nvim-treesitter",
   "https://github.com/neovim/nvim-lspconfig",
-  "https://github.com/brianaung/compl.nvim",
-  "https://github.com/ibhagwan/fzf-lua",
-  "https://github.com/folke/snacks.nvim",
-  "https://github.com/tpope/vim-sleuth",
-  "https://github.com/tpope/vim-surround",
+  "https://github.com/saghen/blink.cmp", -- build: `nix run .#build-plugin`
+  "https://github.com/ibhagwan/fzf-lua", -- requires fzf
   "https://github.com/stevearc/oil.nvim",
   "https://github.com/stevearc/conform.nvim",
-  "https://github.com/stevearc/quicker.nvim",
-  "https://github.com/echasnovski/mini.statusline",
-  "https://github.com/echasnovski/mini.tabline",
-  "https://github.com/mbbill/undotree",
-  "https://github.com/christoomey/vim-tmux-navigator",
+  "https://github.com/RRethy/base16-nvim",
+  "https://github.com/nvim-tree/nvim-web-devicons",
   "https://github.com/lewis6991/gitsigns.nvim",
-  "https://github.com/Exafunction/windsurf.vim",
+  "https://github.com/tpope/vim-surround",
+  "https://github.com/tpope/vim-sleuth",
+  "https://github.com/mrjones2014/smart-splits.nvim", -- use with mutliplexer integration
 }
--- }}}
 
--- {{{ Colorscheme
-require("rose-pine").setup {
-  -- styles = { transparency = true },
-}
-vim.cmd "colorscheme rose-pine"
--- }}}
-
--- {{{ Treesitter
-require("nvim-treesitter.configs").setup {
-  highlight = {
-    enable = true,
-    disable = function(_, buf)
-      local max_filesize = 100 * 1024 -- 100 KB
-      local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-      if ok and stats and stats.size > max_filesize then return true end
-    end,
-  },
-  indent = { enable = true },
-}
--- }}}
-
--- {{{ LSP & Completion
 vim.lsp.config("*", {
   on_attach = function(_, bufnr)
-    vim.keymap.set("n", "<Leader>gd", vim.lsp.buf.definition, { buffer = bufnr })
-    vim.keymap.set("n", "<Leader>gi", vim.lsp.buf.implementation, { buffer = bufnr })
-    vim.keymap.set("n", "<Leader>gr", vim.lsp.buf.references, { buffer = bufnr })
-    vim.keymap.set("n", "<Leader>gt", vim.lsp.buf.type_definition, { buffer = bufnr })
-    vim.keymap.set("n", "<Leader>ca", vim.lsp.buf.code_action, { buffer = bufnr })
-    vim.keymap.set("n", "<Leader>rn", vim.lsp.buf.rename, { buffer = bufnr })
-    vim.keymap.set("n", "<Leader>se", vim.diagnostic.open_float, { buffer = bufnr })
+    vim.keymap.set("n", "gd", "<Cmd>FzfLua lsp_definitions<CR>", { buffer = bufnr, desc = "Goto definition" })
+    vim.keymap.set("n", "gD", "<Cmd>FzfLua lsp_declarations<CR>", { buffer = bufnr, desc = "Goto declaration" })
+    vim.keymap.set("n", "grt", "<Cmd>FzfLua lsp_typedefs<CR>", { buffer = bufnr, desc = "Goto type definitions" })
+    vim.keymap.set("n", "gri", "<Cmd>FzfLua lsp_implementations<CR>", { buffer = bufnr, desc = "Goto implementation" })
+    vim.keymap.set("n", "grr", "<Cmd>FzfLua lsp_references<CR>", { buffer = bufnr, desc = "Goto references" })
+    vim.keymap.set("n", "gra", "<Cmd>FzfLua lsp_code_actions<CR>", { buffer = bufnr, desc = "Perform code action" })
+    vim.keymap.set("n", "grn", vim.lsp.buf.rename, { buffer = bufnr, desc = "Rename symbol" })
+    vim.keymap.set("n", "gO", "<Cmd>FzfLua lsp_document_symbols<CR>", { buffer = bufnr, desc = "Open symbol picker" })
+    vim.keymap.set(
+      "n",
+      "gW",
+      "<Cmd>FzfLua lsp_workspace_symbols<CR>",
+      { buffer = bufnr, desc = "Open workspace symbol picker" }
+    )
   end,
 })
-
 vim.lsp.config("lua_ls", {
   settings = {
     ["Lua"] = { diagnostics = { globals = { "vim" } } },
   },
 })
-
-local vue_plugin = {
-  name = "@vue/typescript-plugin",
-  location = "/home/brianaung/.nix-profile/lib/node_modules/@vue/language-server",
-  languages = { "vue" },
-  configNamespace = "typescript",
-}
 vim.lsp.config("vtsls", {
   settings = {
     vtsls = {
       tsserver = {
         globalPlugins = {
-          vue_plugin,
+          {
+            name = "@vue/typescript-plugin",
+            location = "/home/brianaung/.nix-profile/lib/node_modules/@vue/language-server",
+            languages = { "vue" },
+            configNamespace = "typescript",
+          },
         },
       },
     },
   },
   filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue" },
 })
-
-vim.lsp.enable { "lua_ls", "vue_ls", "vtsls", "tailwindcss", "phpactor", "terraform_ls" }
-
--- vim.opt.runtimepath:append "~/projects/compl.nvim"
-require("compl").setup {
-  signature = {
-    enable = true,
-  },
+vim.lsp.enable {
+  "lua_ls",
+  "zls",
+  "rust_analyzer",
+  "terraform_ls",
+  "vue_ls",
+  "vtsls",
+  "tailwindcss",
+  "phpactor",
+  "basedpyright",
 }
+vim.diagnostic.config { virtual_text = true }
+require("blink.cmp").setup()
 
-vim.keymap.set("i", "<C-y>", function()
-  if vim.fn.pumvisible() ~= 0 and vim.fn.complete_info()["selected"] == -1 then return "<C-n><C-y>" end
-  return "<C-y>"
-end, { expr = true })
--- }}}
-
--- {{{ FzfLua
-require("fzf-lua").setup { "telescope" }
-vim.keymap.set("n", "<Leader>fd", "<Cmd>FzfLua files<CR>")
-vim.keymap.set("n", "<Leader>fl", "<Cmd>FzfLua live_grep<CR>")
-vim.keymap.set("n", "<Leader>fb", "<Cmd>FzfLua buffers<CR>")
-vim.keymap.set("n", "<Leader>fh", "<Cmd>FzfLua help_tags<CR>")
--- }}}
-
--- {{{ Oil
-require("oil").setup()
-vim.keymap.set("n", "-", "<Cmd>Oil<CR>")
--- }}}
-
--- {{ Conform
 require("conform").setup {
   formatters_by_ft = {
     lua = { "stylua" },
-    javascript = { "eslint_d" },
-    vue = { "eslint_d" },
-    css = { "eslint_d" },
   },
-  format_after_save = {
-    lsp_fallback = false,
+  format_on_save = {
     timeout_ms = 500,
-    async = true,
+    lsp_format = "fallback",
   },
 }
--- }}}
 
--- {{{ Misc
-require("quicker").setup()
-require("mini.statusline").setup()
-require("mini.tabline").setup()
-require("gitsigns").setup { current_line_blame = true }
-require("snacks").setup {
-  indent = {},
-  statuscolumn = {},
-  bigfile = {},
-  words = {},
-}
---- }}}
+require("fzf-lua").setup { "borderless-full", fzf_colors = true }
+vim.keymap.set("n", "<Leader>f", "<Cmd>FzfLua files<CR>", { desc = "Open file picker" })
+vim.keymap.set("n", "<Leader>b", "<Cmd>FzfLua buffers<CR>", { desc = "Open buffer picker" })
+vim.keymap.set("n", "<Leader>g", "<Cmd>FzfLua live_grep<CR>", { desc = "Open grep picker" })
+vim.keymap.set("n", "<Leader>h", "<Cmd>FzfLua helptags<CR>", { desc = "Open help picker" })
+
+require("oil").setup()
+vim.keymap.set("n", "-", "<Cmd>Oil<CR>")
+
+vim.keymap.set("n", "<A-h>", "<Cmd>SmartResizeLeft<CR>")
+vim.keymap.set("n", "<A-j>", "<Cmd>SmartResizeDown<CR>")
+vim.keymap.set("n", "<A-k>", "<Cmd>SmartResizeUp<CR>")
+vim.keymap.set("n", "<A-l>", "<Cmd>SmartResizeRight<CR>")
+vim.keymap.set("n", "<C-h>", "<Cmd>SmartCursorMoveLeft<CR>")
+vim.keymap.set("n", "<C-j>", "<Cmd>SmartCursorMoveDown<CR>")
+vim.keymap.set("n", "<C-k>", "<Cmd>SmartCursorMoveUp<CR>")
+vim.keymap.set("n", "<C-l>", "<Cmd>SmartCursorMoveRight<CR>")
+
+vim.cmd "colorscheme base16-everforest-dark-hard"
