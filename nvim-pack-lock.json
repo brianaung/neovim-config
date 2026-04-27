@@ -1,9 +1,5 @@
 {
   "plugins": {
-    "base16-nvim": {
-      "rev": "a2907cc",
-      "src": "https://github.com/RRethy/base16-nvim"
-    },
     "blink.cmp": {
       "rev": "d93e01a",
       "src": "https://github.com/saghen/blink.cmp"
@@ -19,6 +15,14 @@
     "gitsigns.nvim": {
       "rev": "20ad441",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
+    },
+    "gruvbox-material": {
+      "rev": "cc47341018320a2c82262958a1af889e5eeacd6e",
+      "src": "https://github.com/sainnhe/gruvbox-material"
+    },
+    "neovim": {
+      "rev": "cf2a288696b03d0934da713d66c6d71557b5c997",
+      "src": "https://github.com/rose-pine/neovim"
     },
     "nvim-lspconfig": {
       "rev": "e5c61b0",

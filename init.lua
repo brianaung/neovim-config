@@ -2,6 +2,8 @@ vim.g.mapleader = vim.keycode "<Space>"
 vim.g.maplocalleader = vim.keycode "<Space>"
 
 vim.keymap.set("n", "<Esc>", "<Cmd>nohlsearch<CR>")
+vim.keymap.set("n", "j", "gj")
+vim.keymap.set("n", "k", "gk")
 vim.keymap.set({ "n", "v" }, "<Leader>y", [["+y]], { desc = "Yank to clipboard" })
 vim.keymap.set("n", "<Leader>p", [["+p]], { desc = "Paste from clipboard" })
 
@@ -20,6 +22,10 @@ vim.api.nvim_create_autocmd("TextYankPost", {
   callback = function() vim.hl.on_yank() end,
 })
 
+-- builtin plugins
+vim.cmd.packadd "nvim.undotree"
+
+-- External plugins
 vim.pack.add {
   "https://github.com/nvim-treesitter/nvim-treesitter",
   "https://github.com/neovim/nvim-lspconfig",
@@ -27,13 +33,22 @@ vim.pack.add {
   "https://github.com/ibhagwan/fzf-lua", -- requires fzf
   "https://github.com/stevearc/oil.nvim",
   "https://github.com/stevearc/conform.nvim",
-  "https://github.com/RRethy/base16-nvim",
   "https://github.com/nvim-tree/nvim-web-devicons",
   "https://github.com/lewis6991/gitsigns.nvim",
   "https://github.com/tpope/vim-surround",
   "https://github.com/tpope/vim-sleuth",
   "https://github.com/mrjones2014/smart-splits.nvim", -- use with mutliplexer integration
+  "https://github.com/sainnhe/gruvbox-material",
 }
+
+vim.api.nvim_create_autocmd("FileType", {
+  group = vim.api.nvim_create_augroup("treesitter_highlight", { clear = true }),
+  pattern = { "lua", "pug", "javascript", "typescript", "vue", "blade" },
+  callback = function(args)
+    vim.treesitter.start(args.buf)
+    -- vim.bo[args.buf].syntax = "ON" -- only if additional legacy syntax is needed
+  end,
+})
 
 vim.lsp.config("*", {
   on_attach = function(_, bufnr)
@@ -50,6 +65,18 @@ vim.lsp.config("*", {
       "gW",
       "<Cmd>FzfLua lsp_workspace_symbols<CR>",
       { buffer = bufnr, desc = "Open workspace symbol picker" }
+    )
+    vim.keymap.set(
+      "n",
+      "gs",
+      "<Cmd>FzfLua diagnostics_document<CR>",
+      { buffer = bufnr, desc = "Open diagnostics picker" }
+    )
+    vim.keymap.set(
+      "n",
+      "gS",
+      "<Cmd>FzfLua diagnostics_workspace<CR>",
+      { buffer = bufnr, desc = "Open workspace diagnostics picker" }
     )
   end,
 })
@@ -85,6 +112,7 @@ vim.lsp.enable {
   "tailwindcss",
   "phpactor",
   "basedpyright",
+  "gopls",
 }
 vim.diagnostic.config { virtual_text = true }
 require("blink.cmp").setup()
@@ -92,10 +120,11 @@ require("blink.cmp").setup()
 require("conform").setup {
   formatters_by_ft = {
     lua = { "stylua" },
+    -- vue = { "eslint_d" },
+    go = { "gofmt" },
   },
   format_on_save = {
     timeout_ms = 500,
-    lsp_format = "fallback",
   },
 }
 
@@ -117,4 +146,4 @@ vim.keymap.set("n", "<C-j>", "<Cmd>SmartCursorMoveDown<CR>")
 vim.keymap.set("n", "<C-k>", "<Cmd>SmartCursorMoveUp<CR>")
 vim.keymap.set("n", "<C-l>", "<Cmd>SmartCursorMoveRight<CR>")
 
-vim.cmd "colorscheme base16-everforest-dark-hard"
+vim.cmd "colorscheme gruvbox-material"
