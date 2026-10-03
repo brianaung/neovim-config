@@ -16,6 +16,8 @@ vim.opt.smartcase = true
 vim.opt.confirm = true
 vim.opt.list = true
 vim.opt.listchars = { tab = "→ ", eol = "↲", nbsp = "␣", trail = "~" }
+vim.opt.completeopt = { "menuone", "noselect", "noinsert" }
+vim.opt.shortmess:append "c"
 
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = vim.api.nvim_create_augroup("highlight_yank", { clear = true }),
@@ -29,8 +31,9 @@ vim.cmd.packadd "nvim.undotree"
 vim.pack.add {
   "https://github.com/nvim-treesitter/nvim-treesitter",
   "https://github.com/neovim/nvim-lspconfig",
-  "https://github.com/saghen/blink.cmp", -- build: `nix run .#build-plugin`
-  "https://github.com/ibhagwan/fzf-lua", -- requires fzf
+  "https://github.com/brianaung/compl.nvim",
+  "https://github.com/echasnovski/mini.pick",
+  "https://github.com/echasnovski/mini.extra", -- lsp/diagnostic pickers
   "https://github.com/stevearc/oil.nvim",
   "https://github.com/stevearc/conform.nvim",
   "https://github.com/nvim-tree/nvim-web-devicons",
@@ -38,44 +41,56 @@ vim.pack.add {
   "https://github.com/tpope/vim-surround",
   "https://github.com/tpope/vim-sleuth",
   "https://github.com/mrjones2014/smart-splits.nvim", -- use with mutliplexer integration
-  "https://github.com/sainnhe/gruvbox-material",
+  "https://github.com/Shatur/neovim-ayu",
 }
 
 vim.api.nvim_create_autocmd("FileType", {
   group = vim.api.nvim_create_augroup("treesitter_highlight", { clear = true }),
-  pattern = { "lua", "pug", "javascript", "typescript", "vue", "blade" },
   callback = function(args)
-    vim.treesitter.start(args.buf)
-    -- vim.bo[args.buf].syntax = "ON" -- only if additional legacy syntax is needed
+    local ft = vim.bo[args.buf].filetype
+    local lang = vim.treesitter.language.get_lang(ft) or ft
+    local ts = require "nvim-treesitter"
+
+    local function start()
+      if vim.api.nvim_buf_is_valid(args.buf) and pcall(vim.treesitter.start, args.buf) then
+        vim.bo[args.buf].syntax = "ON"
+      end
+    end
+
+    if vim.tbl_contains(ts.get_installed(), lang) then
+      start()
+    elseif vim.tbl_contains(ts.get_available(), lang) then
+      ts.install(lang):await(function(err)
+        if not err then vim.schedule(start) end
+      end)
+    end
   end,
 })
 
 vim.lsp.config("*", {
   on_attach = function(_, bufnr)
-    vim.keymap.set("n", "gd", "<Cmd>FzfLua lsp_definitions<CR>", { buffer = bufnr, desc = "Goto definition" })
-    vim.keymap.set("n", "gD", "<Cmd>FzfLua lsp_declarations<CR>", { buffer = bufnr, desc = "Goto declaration" })
-    vim.keymap.set("n", "grt", "<Cmd>FzfLua lsp_typedefs<CR>", { buffer = bufnr, desc = "Goto type definitions" })
-    vim.keymap.set("n", "gri", "<Cmd>FzfLua lsp_implementations<CR>", { buffer = bufnr, desc = "Goto implementation" })
-    vim.keymap.set("n", "grr", "<Cmd>FzfLua lsp_references<CR>", { buffer = bufnr, desc = "Goto references" })
-    vim.keymap.set("n", "gra", "<Cmd>FzfLua lsp_code_actions<CR>", { buffer = bufnr, desc = "Perform code action" })
+    local lsp_picker = function(scope)
+      return function() require("mini.extra").pickers.lsp { scope = scope } end
+    end
+    vim.keymap.set("n", "gd", lsp_picker "definition", { buffer = bufnr, desc = "Goto definition" })
+    vim.keymap.set("n", "gD", lsp_picker "declaration", { buffer = bufnr, desc = "Goto declaration" })
+    vim.keymap.set("n", "grt", lsp_picker "type_definition", { buffer = bufnr, desc = "Goto type definitions" })
+    vim.keymap.set("n", "gri", lsp_picker "implementation", { buffer = bufnr, desc = "Goto implementation" })
+    vim.keymap.set("n", "grr", lsp_picker "references", { buffer = bufnr, desc = "Goto references" })
+    vim.keymap.set("n", "gra", vim.lsp.buf.code_action, { buffer = bufnr, desc = "Perform code action" })
     vim.keymap.set("n", "grn", vim.lsp.buf.rename, { buffer = bufnr, desc = "Rename symbol" })
-    vim.keymap.set("n", "gO", "<Cmd>FzfLua lsp_document_symbols<CR>", { buffer = bufnr, desc = "Open symbol picker" })
-    vim.keymap.set(
-      "n",
-      "gW",
-      "<Cmd>FzfLua lsp_workspace_symbols<CR>",
-      { buffer = bufnr, desc = "Open workspace symbol picker" }
-    )
+    vim.keymap.set("n", "gO", lsp_picker "document_symbol", { buffer = bufnr, desc = "Open symbol picker" })
+    vim.keymap.set("n", "gW", lsp_picker "workspace_symbol", { buffer = bufnr, desc = "Open workspace symbol picker" })
     vim.keymap.set(
       "n",
       "gs",
-      "<Cmd>FzfLua diagnostics_document<CR>",
+      function() require("mini.extra").pickers.diagnostic { scope = "current" } end,
       { buffer = bufnr, desc = "Open diagnostics picker" }
     )
     vim.keymap.set(
       "n",
       "gS",
-      "<Cmd>FzfLua diagnostics_workspace<CR>",
+      function() require("mini.extra").pickers.diagnostic { scope = "all" } end,
       { buffer = bufnr, desc = "Open workspace diagnostics picker" }
     )
   end,
@@ -115,12 +130,11 @@ vim.lsp.enable {
   "gopls",
 }
 vim.diagnostic.config { virtual_text = true }
-require("blink.cmp").setup()
+require("compl").setup()
 
 require("conform").setup {
   formatters_by_ft = {
     lua = { "stylua" },
-    -- vue = { "eslint_d" },
     go = { "gofmt" },
   },
   format_on_save = {
@@ -128,11 +142,12 @@ require("conform").setup {
   },
 }
 
-require("fzf-lua").setup { "borderless-full", fzf_colors = true }
-vim.keymap.set("n", "<Leader>f", "<Cmd>FzfLua files<CR>", { desc = "Open file picker" })
-vim.keymap.set("n", "<Leader>b", "<Cmd>FzfLua buffers<CR>", { desc = "Open buffer picker" })
-vim.keymap.set("n", "<Leader>g", "<Cmd>FzfLua live_grep<CR>", { desc = "Open grep picker" })
-vim.keymap.set("n", "<Leader>h", "<Cmd>FzfLua helptags<CR>", { desc = "Open help picker" })
+require("mini.pick").setup()
+require("mini.extra").setup()
+vim.keymap.set("n", "<Leader>f", function() require("mini.pick").builtin.files() end, { desc = "Open file picker" })
+vim.keymap.set("n", "<Leader>b", function() require("mini.pick").builtin.buffers() end, { desc = "Open buffer picker" })
+vim.keymap.set("n", "<Leader>g", function() require("mini.pick").builtin.grep_live() end, { desc = "Open grep picker" })
+vim.keymap.set("n", "<Leader>h", function() require("mini.pick").builtin.help() end, { desc = "Open help picker" })
 
 require("oil").setup()
 vim.keymap.set("n", "-", "<Cmd>Oil<CR>")
@@ -146,4 +161,4 @@ vim.keymap.set("n", "<C-j>", "<Cmd>SmartCursorMoveDown<CR>")
 vim.keymap.set("n", "<C-k>", "<Cmd>SmartCursorMoveUp<CR>")
 vim.keymap.set("n", "<C-l>", "<Cmd>SmartCursorMoveRight<CR>")
 
-vim.cmd "colorscheme gruvbox-material"
+vim.cmd "colorscheme ayu-mirage"

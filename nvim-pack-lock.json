@@ -1,47 +1,47 @@
 {
   "plugins": {
-    "blink.cmp": {
-      "rev": "d93e01a",
-      "src": "https://github.com/saghen/blink.cmp"
+    "compl.nvim": {
+      "rev": "df9cb61bea1e3f104c7b5aeeaa95415b10760d50",
+      "src": "https://github.com/brianaung/compl.nvim"
     },
     "conform.nvim": {
-      "rev": "235dd79",
+      "rev": "016802de402556da54c36bd7359b441266b01cdd",
       "src": "https://github.com/stevearc/conform.nvim"
     },
-    "fzf-lua": {
-      "rev": "c102a4e",
-      "src": "https://github.com/ibhagwan/fzf-lua"
-    },
     "gitsigns.nvim": {
-      "rev": "20ad441",
+      "rev": "070a5d7b985546cc57e1fc61e5bc507fecac6045",
       "src": "https://github.com/lewis6991/gitsigns.nvim"
     },
-    "gruvbox-material": {
-      "rev": "cc47341018320a2c82262958a1af889e5eeacd6e",
-      "src": "https://github.com/sainnhe/gruvbox-material"
+    "mini.extra": {
+      "rev": "9c6affac2b176142f48b185bd7abc5db7ec20ac8",
+      "src": "https://github.com/echasnovski/mini.extra"
     },
-    "neovim": {
-      "rev": "cf2a288696b03d0934da713d66c6d71557b5c997",
-      "src": "https://github.com/rose-pine/neovim"
+    "mini.pick": {
+      "rev": "360c1bb33610e030698d07ed15969ab4762dbcd6",
+      "src": "https://github.com/echasnovski/mini.pick"
+    },
+    "neovim-ayu": {
+      "rev": "e5a9f0fa2918d6b5f57c21b3ac014314ee5e41c8",
+      "src": "https://github.com/Shatur/neovim-ayu"
     },
     "nvim-lspconfig": {
-      "rev": "e5c61b0",
+      "rev": "046b1a797af1effe8e0474b9af9657a3761ec58a",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "nvim-treesitter": {
-      "rev": "42fc28ba",
+      "rev": "f603a2f4da48728f80257fb5fbb90145fd1dc173",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter"
     },
     "nvim-web-devicons": {
-      "rev": "b8221e4",
+      "rev": "58447c1fca354bbf184425e4a8d01deecbd6f3c4",
       "src": "https://github.com/nvim-tree/nvim-web-devicons"
     },
     "oil.nvim": {
-      "rev": "7e1cd77",
+      "rev": "b73018b75affd13fa38e2fc94ef753b465f770d7",
       "src": "https://github.com/stevearc/oil.nvim"
     },
     "smart-splits.nvim": {
-      "rev": "9a26145",
+      "rev": "ec76708f1617ef9e2ac353357fe52d2c997a0f06",
       "src": "https://github.com/mrjones2014/smart-splits.nvim"
     },
     "vim-sleuth": {
